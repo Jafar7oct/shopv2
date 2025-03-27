@@ -44,37 +44,47 @@ public class ShopController {
     @PostMapping("/signup")
     public String signupSubmit(@RequestParam String username, @RequestParam String password) {
         User user = new User();
-        user.setId(System.currentTimeMillis()); // Simple ID generation; consider a better strategy in production
+        user.setId(System.currentTimeMillis());
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole("USER"); // Default role for new users
+        user.setRole("USER");
         userRepository.save(user);
         return "redirect:/login";
     }
 
     @GetMapping("/admin")
     public String admin(Model model) {
-        List<Product> products = productRepository.findAll();
-        model.addAttribute("products", products);
         return "admin";
     }
 
+    @GetMapping("/admin/manage")
+    public String manageProducts(Model model) {
+        List<Product> products = productRepository.findAll();
+        model.addAttribute("products", products);
+        return "manage";
+    }
+
     @PostMapping("/admin/add")
-    public String addProduct(@ModelAttribute Product product) {
+    public String addProduct(@RequestParam Long id, @RequestParam String name, @RequestParam double price, 
+                            @RequestParam String description, @RequestParam String imageUrl) {
+        Product product = new Product(id, name, price, description, imageUrl);
         productRepository.save(product);
-        return "redirect:/admin";
+        return "redirect:/admin/manage";
     }
 
     @PostMapping("/admin/edit")
-    public String editProduct(@ModelAttribute Product product) {
+    public String editProduct(@RequestParam Long id, @RequestParam String name, @RequestParam double price) {
+        Product product = productRepository.findById(id).orElseThrow();
+        product.setName(name);
+        product.setPrice(price);
         productRepository.save(product);
-        return "redirect:/admin";
+        return "redirect:/admin/manage";
     }
 
     @GetMapping("/admin/delete/{id}")
     public String deleteProduct(@PathVariable Long id) {
         productRepository.deleteById(id);
-        return "redirect:/admin";
+        return "redirect:/admin/manage";
     }
 
     @GetMapping("/search")
