@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DevSecOps Vulnerability Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        h1, h2 { color: #333; }
+    </style>
+</head>
+<body>
+    <h1>DevSecOps Vulnerability Report</h1>
+
+    <h2>SonarQube Issues</h2>
+    <table>
+        <tr><th>Message</th><th>Severity</th><th>File</th><th>Line</th></tr>
+        {% for issue in report.sonarqube_issues %}
+            <tr>
+                <td>{{ issue.message }}</td>
+                <td>{{ issue.severity }}</td>
+                <td>{{ issue.component | replace("shop-app:", "") }}</td>
+                <td>{{ issue.line | default("N/A") }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h2>OWASP Dependency-Check Vulnerabilities</h2>
+    <table>
+        <tr><th>Dependency</th><th>CVE</th><th>Severity</th><th>Description</th></tr>
+        {% for dep in report.owasp_vulnerabilities if dep.vulnerabilities %}
+            {% for vuln in dep.vulnerabilities %}
+                <tr>
+                    <td>{{ dep.fileName }}</td>
+                    <td>{{ vuln.name }}</td>
+                    <td>{{ vuln.severity }}</td>
+                    <td>{{ vuln.description }}</td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+    </table>
+
+    <h2>Trivy Container Vulnerabilities</h2>
+    <table>
+        <tr><th>Library</th><th>CVE</th><th>Severity</th><th>Installed Version</th><th>Fixed Version</th><th>Title</th></tr>
+        {% for result in report.trivy_vulnerabilities if result.Vulnerabilities %}
+            {% for vuln in result.Vulnerabilities %}
+                <tr>
+                    <td>{{ vuln.PkgName }}</td>
+                    <td>{{ vuln.VulnerabilityID }}</td>
+                    <td>{{ vuln.Severity }}</td>
+                    <td>{{ vuln.InstalledVersion }}</td>
+                    <td>{{ vuln.FixedVersion | default("N/A") }}</td>
+                    <td>{{ vuln.Title }}</td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+    </table>
+</body>
+</html>
